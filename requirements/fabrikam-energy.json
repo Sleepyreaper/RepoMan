@@ -1,0 +1,127 @@
+{
+  "customer": "Fabrikam Energy",
+  "version": "2026.08-demo",
+  "disclaimer": "Fictional controls created solely for the RepoMan DTE prototype.",
+  "controls": [
+    {
+      "control_id": "FAB-REG-001",
+      "title": "Approved Azure regions",
+      "domains": ["residency", "governance"],
+      "resource_types": ["azurerm_storage_account", "azurerm_key_vault", "azurerm_postgresql_flexible_server"],
+      "severity": "deny",
+      "requirement": "Production resources containing confidential or operational data must be deployed only in East US 2 or Central US.",
+      "rationale": "Fabrikam's fictional data-residency assessment approves only these paired regions.",
+      "remediation": "Change the resource location to `eastus2` or `centralus`.",
+      "approved_pattern": "Set `location` to either `eastus2` or `centralus`; both are approved for this fictional demo.",
+      "source": "Fabrikam Cloud Engineering Standard v4.2, section 3.1"
+    },
+    {
+      "control_id": "FAB-NET-004",
+      "title": "Private storage networking",
+      "domains": ["networking", "storage", "security"],
+      "resource_types": ["azurerm_storage_account"],
+      "severity": "deny",
+      "requirement": "Storage accounts handling confidential data must disable public network access and use the approved private endpoint module.",
+      "rationale": "Public endpoints bypass Fabrikam's fictional inspection and private DNS controls.",
+      "remediation": "Set `public_network_access_enabled = false` and reference `Fabrikam/private-storage/azurerm`.",
+      "approved_pattern": "Use `approved_private_endpoint_module = \"Fabrikam/private-storage/azurerm\"` in the demo harness.",
+      "source": "Fabrikam Cloud Engineering Standard v4.2, section 7.3"
+    },
+    {
+      "control_id": "FAB-DATA-011",
+      "title": "Anonymous storage access",
+      "domains": ["storage", "data-protection"],
+      "resource_types": ["azurerm_storage_account"],
+      "severity": "deny",
+      "requirement": "Anonymous access to containers, blobs, and nested storage items is prohibited.",
+      "rationale": "Anonymous access could disclose grid operations or customer data.",
+      "remediation": "Set `allow_nested_items_to_be_public = false`.",
+      "approved_pattern": "All Fabrikam storage modules set anonymous access controls to false by default.",
+      "source": "Fabrikam Data Protection Standard v3.6, control DP-18"
+    },
+    {
+      "control_id": "FAB-KEY-006",
+      "title": "Key Vault purge protection",
+      "domains": ["identity", "key-management", "resilience"],
+      "resource_types": ["azurerm_key_vault"],
+      "severity": "deny",
+      "requirement": "Production Key Vaults must enable purge protection.",
+      "rationale": "Purge protection reduces the risk of permanent key loss after accidental or malicious deletion.",
+      "remediation": "Set `purge_protection_enabled = true`.",
+      "approved_pattern": "Fabrikam's Key Vault baseline enables soft delete and purge protection.",
+      "source": "Fabrikam Key Management Standard v2.8, control KM-06"
+    },
+    {
+      "control_id": "FAB-CHG-002",
+      "title": "Destructive infrastructure changes",
+      "domains": ["change-management", "resilience"],
+      "resource_types": ["*"],
+      "severity": "deny",
+      "requirement": "Production resource deletion or replacement requires a separately approved, time-bound change exception.",
+      "rationale": "Unreviewed replacement can cause outages, data loss, or identity changes.",
+      "remediation": "Remove the replacement-causing change or attach an approved exception outside the evaluated pull request.",
+      "approved_pattern": "Prefer in-place changes and migration procedures that preserve resource identity.",
+      "source": "Fabrikam Production Change Standard v5.0, section 4.2"
+    },
+    {
+      "control_id": "FAB-GOV-003",
+      "title": "Mandatory governance tags",
+      "domains": ["governance", "cost-management"],
+      "resource_types": ["*"],
+      "severity": "deny",
+      "requirement": "Managed resources must define owner, environment, cost_center, and data_classification tags.",
+      "rationale": "Tags support ownership, incident routing, cost allocation, and policy enforcement.",
+      "remediation": "Add all mandatory tag keys with valid Fabrikam values.",
+      "approved_pattern": "For the demo use owner `grid-platform`, environment `prod`, cost_center `ENERGY-042`, and data_classification `confidential`.",
+      "source": "Fabrikam Resource Governance Standard v6.1, control GOV-03"
+    },
+    {
+      "control_id": "FAB-SEC-015",
+      "title": "No committed secrets",
+      "domains": ["security", "secrets"],
+      "resource_types": ["*"],
+      "severity": "deny",
+      "requirement": "Passwords, tokens, client secrets, state, and production variable values must not be committed to source control.",
+      "rationale": "Repository history is not an approved secret store.",
+      "remediation": "Remove and rotate the value, then reference the approved secret service through an input variable.",
+      "approved_pattern": "Use workload identity and Key Vault references instead of literals.",
+      "source": "Fabrikam Secure Development Standard v7.4, control SD-15"
+    },
+    {
+      "control_id": "FAB-IAC-007",
+      "title": "Reproducible provider selection",
+      "domains": ["terraform", "supply-chain"],
+      "resource_types": ["*"],
+      "severity": "deny",
+      "requirement": "Terraform dependency lock files must be committed and reviewed.",
+      "rationale": "Pinned provider selections and checksums improve reproducibility and supply-chain review.",
+      "remediation": "Run `terraform init` and commit `.terraform.lock.hcl`.",
+      "approved_pattern": "Review lock-file changes alongside provider constraint changes.",
+      "source": "Fabrikam Infrastructure-as-Code Standard v3.3, control IAC-07"
+    },
+    {
+      "control_id": "FAB-NET-009",
+      "title": "No direct public IP",
+      "domains": ["networking", "security"],
+      "resource_types": ["azurerm_public_ip"],
+      "severity": "deny",
+      "requirement": "Production workloads must not create direct public IP resources.",
+      "rationale": "Inbound connectivity must traverse Fabrikam's fictional approved inspection boundary.",
+      "remediation": "Use the approved private ingress or application gateway module.",
+      "approved_pattern": "Application ingress terminates at centrally managed shared services.",
+      "source": "Fabrikam Network Security Standard v5.5, control NET-09"
+    },
+    {
+      "control_id": "FAB-AI-001",
+      "title": "Human approval of generated changes",
+      "domains": ["ai-governance", "change-management"],
+      "resource_types": ["*"],
+      "severity": "deny",
+      "requirement": "AI-generated infrastructure changes must be proposed on a separate branch, pass deterministic validation, and receive human approval before merge.",
+      "rationale": "Generated code can contain plausible but incorrect assumptions.",
+      "remediation": "Create a remediation pull request and retain its model, policy, citation, and validation record.",
+      "approved_pattern": "RepoMan may draft and validate a fix but may not merge it.",
+      "source": "Fabrikam Responsible AI Engineering Standard v1.0, control AI-01"
+    }
+  ]
+}

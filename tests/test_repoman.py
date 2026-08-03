@@ -54,7 +54,37 @@ class RepoManTests(unittest.TestCase):
 
             self.assertEqual({"required-file", "inline-secret", "forbidden-file"}, rule_ids)
 
+    def test_terraform_data_demo_resource_uses_represented_type(self):
+        plan = {
+            "resource_changes": [
+                {
+                    "address": "terraform_data.storage",
+                    "type": "terraform_data",
+                    "change": {
+                        "actions": ["create"],
+                        "after": {
+                            "input": {
+                                "resource_type": "azurerm_storage_account",
+                                "location": "westus",
+                                "public_network_access_enabled": True,
+                                "allow_nested_items_to_be_public": True,
+                                "tags": {"environment": "prod"},
+                            }
+                        },
+                        "after_unknown": {},
+                    },
+                }
+            ]
+        }
+
+        findings = evaluate_plan(POLICY, plan)
+        rule_ids = {finding.rule_id for finding in findings}
+
+        self.assertIn("allowed-region", rule_ids)
+        self.assertIn("required-tags", rule_ids)
+        self.assertIn("storage-private-network", rule_ids)
+        self.assertIn("storage-private-containers", rule_ids)
+
 
 if __name__ == "__main__":
     unittest.main()
-
