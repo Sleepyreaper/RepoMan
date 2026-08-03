@@ -4,6 +4,11 @@ RepoMan is a customer-aware Terraform pull-request gate. It evaluates a
 Terraform plan against deterministic requirements, blocks noncompliant changes,
 and tells the developer exactly how to fix each issue.
 
+The AI council prototype additionally retrieves fictional Fabrikam Energy
+requirements from Azure AI Search, uses multiple models from
+`hallofjusticefoundry`, generates a Terraform correction, validates it, and
+opens a separate draft remediation PR after an independent rubber-duck review.
+
 ## Prototype capabilities
 
 - Customer-specific policy in `.repoman/policy.json`
@@ -15,6 +20,9 @@ and tells the developer exactly how to fix each issue.
 - Lock-file, state, variable-file, and inline-secret checks
 - GitHub annotations, job summary, action outputs, and merge-blocking exit code
 - Approved and denied example plans with remediation
+- Customer-scoped vector RAG with requirement citations
+- Multi-model routing, reasoning, fixing, and independent verification
+- Generated Terraform patch validated before a draft remediation PR is opened
 
 ## Run locally
 
@@ -38,10 +46,16 @@ python3 src/repoman.py evaluate \
 
 ## Live proof on GitHub
 
-The required workflow evaluates `examples/demo/current-plan.json` as its final
-merge gate. A pull request that changes this file to a noncompliant plan gets a
-red **RepoMan Terraform policy** check, inline errors, and a **How to fix**
-summary. A compliant plan gets a green check and can merge.
+The required workflow creates a real plan from
+`examples/demo/customer/main.tf`. A pull request that changes this file to a
+noncompliant configuration gets a red **RepoMan Terraform policy** check,
+inline errors, and a **How to fix** summary. A compliant plan gets a green
+check and can merge.
+
+For internal PRs, the trusted **RepoMan AI council** workflow also retrieves
+Fabrikam controls, asks Terra to generate a fix, validates it, asks Sol to
+challenge it, and opens a draft remediation PR targeting the original PR
+branch.
 
 For a presentation:
 
@@ -105,6 +119,7 @@ match the filter.
 ## Design
 
 - [Architecture and phased Foundry design](docs/architecture.md)
+- [Live AI review council](docs/ai-review-council.md)
 - [Terraform check-in requirements](docs/terraform-check-in-requirements.md)
 - [Common PR problems and fixes](examples/pr-scenarios.md)
 

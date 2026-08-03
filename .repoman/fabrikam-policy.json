@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "customer": {
+    "name": "Fabrikam Energy",
+    "context": "Fictional regulated utility demo handling grid operations and customer data."
+  },
+  "requirements": {
+    "allowed_regions": [
+      "centralus",
+      "eastus2"
+    ],
+    "required_tags": {
+      "cost_center": "ENERGY-042",
+      "data_classification": "confidential",
+      "environment": "dev|test|prod",
+      "owner": "team-name"
+    },
+    "max_destroyed_resources": 0,
+    "required_files": [
+      ".terraform.lock.hcl"
+    ],
+    "forbidden_file_globs": [
+      "*.tfstate",
+      "*.tfstate.*",
+      "*.tfvars",
+      "*.auto.tfvars"
+    ],
+    "forbid_inline_secrets": true,
+    "forbidden_resource_types": [
+      {
+        "resource_types": [
+          "azurerm_public_ip"
+        ],
+        "message": "Fabrikam production workloads must not create direct public IP resources.",
+        "fix": "Use Fabrikam's approved private ingress module."
+      }
+    ],
+    "attribute_rules": [
+      {
+        "id": "storage-private-network",
+        "title": "Storage public network access is disabled",
+        "resource_types": [
+          "azurerm_storage_account"
+        ],
+        "attribute": "public_network_access_enabled",
+        "allowed_values": [
+          false
+        ],
+        "message": "Fabrikam storage accounts must not be reachable over a public endpoint.",
+        "fix": "Set `public_network_access_enabled = false` and use `Fabrikam/private-storage/azurerm`."
+      },
+      {
+        "id": "storage-private-containers",
+        "title": "Anonymous blob access is disabled",
+        "resource_types": [
+          "azurerm_storage_account"
+        ],
+        "attribute": "allow_nested_items_to_be_public",
+        "allowed_values": [
+          false
+        ],
+        "message": "Fabrikam containers and blobs must not allow anonymous access.",
+        "fix": "Set `allow_nested_items_to_be_public = false`."
+      },
+      {
+        "id": "key-vault-purge-protection",
+        "title": "Key Vault purge protection is enabled",
+        "resource_types": [
+          "azurerm_key_vault"
+        ],
+        "attribute": "purge_protection_enabled",
+        "allowed_values": [
+          true
+        ],
+        "message": "Fabrikam Key Vaults must resist immediate permanent deletion.",
+        "fix": "Set `purge_protection_enabled = true`."
+      }
+    ]
+  }
+}
+
