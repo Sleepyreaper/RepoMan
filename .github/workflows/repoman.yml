@@ -76,3 +76,10 @@ jobs:
         run: |
           test "$DECISION" = "deny"
           grep -q "How to fix" /tmp/repoman-denied.md
+
+      - name: Evaluate the pull request plan
+        uses: ./
+        with:
+          policy-file: .repoman/policy.json
+          plan-json: examples/demo/current-plan.json
+          report-file: /tmp/repoman-pr-decision.md

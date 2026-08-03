@@ -36,6 +36,21 @@ python3 src/repoman.py evaluate \
   --report /tmp/repoman-denied.md
 ```
 
+## Live proof on GitHub
+
+The required workflow evaluates `examples/demo/current-plan.json` as its final
+merge gate. A pull request that changes this file to a noncompliant plan gets a
+red **RepoMan Terraform policy** check, inline errors, and a **How to fix**
+summary. A compliant plan gets a green check and can merge.
+
+For a presentation:
+
+1. Open the denied demo PR and show the blocked merge button.
+2. Open its failed **RepoMan Terraform policy** check and expand the
+   **Evaluate the pull request plan** step.
+3. Show the job summary listing each violated customer rule and remediation.
+4. Open the approved demo PR and show the same required check passing.
+
 ## Use in a Terraform repository
 
 Generate a speculative plan, convert it to Terraform's documented JSON format,
