@@ -81,6 +81,40 @@ def is_unknown(after_unknown: Any, dotted_path: str) -> bool:
     return found and value is True
 
 
+def normalize_resource(
+    resource: dict[str, Any], after: dict[str, Any], after_unknown: dict[str, Any]
+) -> tuple[str, str, dict[str, Any], dict[str, Any]]:
+    """Map the credential-free demo harness to its represented Azure resource."""
+    address = resource.get("address", "unknown")
+    resource_type = resource.get("type", "unknown")
+    if resource_type != "terraform_data":
+        return address, resource_type, after, after_unknown
+
+    input_value = after.get("input")
+    if not isinstance(input_value, dict):
+        return address, resource_type, after, after_unknown
+
+    represented_type = input_value.get("resource_type")
+    if not isinstance(represented_type, str):
+        return address, resource_type, after, after_unknown
+
+    unknown_input = after_unknown.get("input")
+    if not isinstance(unknown_input, dict):
+        unknown_input = {}
+    normalized_after = {
+        key: value for key, value in input_value.items() if key != "resource_type"
+    }
+    normalized_unknown = {
+        key: value for key, value in unknown_input.items() if key != "resource_type"
+    }
+    return (
+        f"{address} ({represented_type})",
+        represented_type,
+        normalized_after,
+        normalized_unknown,
+    )
+
+
 def evaluate_plan(
     policy: dict[str, Any], plan: dict[str, Any]
 ) -> list[Finding]:
@@ -129,8 +163,6 @@ def evaluate_plan(
         if not isinstance(resource, dict):
             continue
 
-        address = resource.get("address", "unknown")
-        resource_type = resource.get("type", "unknown")
         change = resource.get("change", {})
         actions = change.get("actions", [])
         after = change.get("after")
@@ -140,6 +172,10 @@ def evaluate_plan(
             continue
         if not isinstance(after, dict):
             after = {}
+
+        address, resource_type, after, after_unknown = normalize_resource(
+            resource, after, after_unknown
+        )
 
         forbidden_rule = forbidden_types.get(resource_type)
         if forbidden_rule:
@@ -423,7 +459,9 @@ def evaluate(args: argparse.Namespace) -> int:
         policy = load_json(policy_path, "policy")
         validate_policy(policy)
         plan = load_json(plan_path, "Terraform plan")
-        findings = evaluate_source(policy, repo_root) + evaluate_plan(policy, plan)
+        findings = evaluate_plan(policy, plan)
+        if not args.plan_only:
+            findings = evaluate_source(policy, repo_root) + findings
         report = markdown_report(policy, findings)
 
         report_file.parent.mkdir(parents=True, exist_ok=True)
@@ -450,6 +488,7 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--repo-root", default=".")
     evaluate_parser.add_argument("--report", default="repoman-report.md")
     evaluate_parser.add_argument("--github", action="store_true")
+    evaluate_parser.add_argument("--plan-only", action="store_true")
     evaluate_parser.set_defaults(handler=evaluate)
     return parser
 

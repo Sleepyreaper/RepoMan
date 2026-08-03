@@ -2,3 +2,6 @@
 /.repoman/ @Sleepyreaper
 /action.yml @Sleepyreaper
 /src/repoman.py @Sleepyreaper
+/src/repoman_council.py @Sleepyreaper
+/requirements/ @Sleepyreaper
+/requirements-ai.txt @Sleepyreaper

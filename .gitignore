@@ -6,4 +6,6 @@ __pycache__/
 *.tfplan
 plan.json
 repoman-report.md
-
+repoman-ai-review.json
+repoman-ai-review.md
+repoman-remediation.patch
