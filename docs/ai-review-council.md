@@ -40,8 +40,19 @@ The repository defines these non-secret GitHub variables:
 
 The managed identity requires `Cognitive Services OpenAI User`,
 `Search Index Data Reader`, and permission to create remediation branches
-through GitHub's short-lived workflow token. Its federated credential subject is
-`repo:Sleepyreaper/RepoMan:pull_request`.
+through GitHub's short-lived workflow token. The repository setting **Allow
+GitHub Actions to create and approve pull requests** must be enabled.
+
+Repositories created after GitHub's July 15, 2026 OIDC change use immutable
+owner and repository IDs in the subject. This repository presents:
+
+```text
+repo:Sleepyreaper@9202434/RepoMan@1322009188:pull_request
+```
+
+Create the federated credential from the subject emitted by the first
+`azure/login` attempt rather than assuming the older
+`repo:owner/repository:pull_request` format.
 
 Seed or update the fictional corpus with:
 
