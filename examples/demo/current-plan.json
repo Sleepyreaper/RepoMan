@@ -14,9 +14,9 @@
         "before": null,
         "after": {
           "name": "contosocustomerdata",
-          "location": "eastus2",
-          "public_network_access_enabled": false,
-          "allow_nested_items_to_be_public": false,
+          "location": "westus",
+          "public_network_access_enabled": true,
+          "allow_nested_items_to_be_public": true,
           "tags": {
             "cost_center": "FIN-1234",
             "data_classification": "confidential",
@@ -34,13 +34,14 @@
       "name": "customer",
       "change": {
         "actions": [
+          "delete",
           "create"
         ],
         "before": null,
         "after": {
           "name": "contoso-customer-kv",
           "location": "centralus",
-          "purge_protection_enabled": true,
+          "purge_protection_enabled": false,
           "tags": {
             "cost_center": "FIN-1234",
             "data_classification": "confidential",
