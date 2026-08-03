@@ -13,7 +13,7 @@
         ],
         "before": null,
         "after": {
-          "name": "contosocustomerdata",
+          "name": "contosocustomerdata02",
           "location": "eastus2",
           "public_network_access_enabled": false,
           "allow_nested_items_to_be_public": false,
@@ -38,7 +38,7 @@
         ],
         "before": null,
         "after": {
-          "name": "contoso-customer-kv",
+          "name": "contoso-customer-kv-02",
           "location": "centralus",
           "purge_protection_enabled": true,
           "tags": {
