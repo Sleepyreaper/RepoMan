@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "customer": {
+    "name": "Contoso Retail",
+    "context": "Regulated retail workloads containing customer and payment-adjacent data."
+  },
+  "requirements": {
+    "allowed_regions": [
+      "centralus",
+      "eastus2"
+    ],
+    "required_tags": {
+      "cost_center": "FIN-1234",
+      "data_classification": "confidential",
+      "environment": "dev|test|prod",
+      "owner": "team-name"
+    },
+    "max_destroyed_resources": 0,
+    "required_files": [
+      ".terraform.lock.hcl"
+    ],
+    "forbidden_file_globs": [
+      "*.tfstate",
+      "*.tfstate.*",
+      "*.tfvars",
+      "*.auto.tfvars"
+    ],
+    "forbid_inline_secrets": true,
+    "forbidden_resource_types": [
+      {
+        "resource_types": [
+          "azurerm_public_ip"
+        ],
+        "message": "Customer workloads must not create direct public IP resources.",
+        "fix": "Place the workload behind the approved private ingress or application gateway module."
+      }
+    ],
+    "attribute_rules": [
+      {
+        "id": "storage-private-network",
+        "title": "Storage public network access is disabled",
+        "resource_types": [
+          "azurerm_storage_account"
+        ],
+        "attribute": "public_network_access_enabled",
+        "allowed_values": [
+          false
+        ],
+        "message": "Storage accounts must not be reachable over a public endpoint.",
+        "fix": "Set `public_network_access_enabled = false` and add a private endpoint."
+      },
+      {
+        "id": "storage-private-containers",
+        "title": "Anonymous blob access is disabled",
+        "resource_types": [
+          "azurerm_storage_account"
+        ],
+        "attribute": "allow_nested_items_to_be_public",
+        "allowed_values": [
+          false
+        ],
+        "message": "Containers and blobs must not allow anonymous public access.",
+        "fix": "Set `allow_nested_items_to_be_public = false`."
+      },
+      {
+        "id": "key-vault-purge-protection",
+        "title": "Key Vault purge protection is enabled",
+        "resource_types": [
+          "azurerm_key_vault"
+        ],
+        "attribute": "purge_protection_enabled",
+        "allowed_values": [
+          true
+        ],
+        "message": "Key Vaults must resist immediate permanent deletion.",
+        "fix": "Set `purge_protection_enabled = true`."
+      },
+      {
+        "id": "database-zone-redundancy",
+        "title": "Production databases are zone redundant",
+        "resource_types": [
+          "azurerm_postgresql_flexible_server"
+        ],
+        "attribute": "high_availability.0.mode",
+        "allowed_values": [
+          "ZoneRedundant"
+        ],
+        "message": "Customer databases require zone-redundant high availability.",
+        "fix": "Add `high_availability { mode = \"ZoneRedundant\" }`."
+      }
+    ]
+  }
+}
+

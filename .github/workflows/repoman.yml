@@ -1,0 +1,78 @@
+name: RepoMan prototype
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  merge_group:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repoman-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: RepoMan Terraform policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: "1.15.5"
+          terraform_wrapper: false
+
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Check Terraform formatting
+        run: terraform -chdir=examples/terraform/valid fmt -check -diff
+
+      - name: Initialize example
+        run: terraform -chdir=examples/terraform/valid init -backend=false -input=false
+
+      - name: Validate example
+        run: terraform -chdir=examples/terraform/valid validate
+
+      - name: Verify approval path
+        id: approved
+        uses: ./
+        with:
+          policy-file: .repoman/policy.json
+          plan-json: examples/plans/approved.json
+          report-file: /tmp/repoman-approved.md
+
+      - name: Assert approval
+        env:
+          DECISION: ${{ steps.approved.outputs.decision }}
+        run: test "$DECISION" = "approve"
+
+      - name: Verify denial path and remediation
+        id: denied
+        uses: ./
+        with:
+          policy-file: .repoman/policy.json
+          plan-json: examples/plans/denied.json
+          report-file: /tmp/repoman-denied.md
+          fail-on-deny: "false"
+
+      - name: Assert denial
+        env:
+          DECISION: ${{ steps.denied.outputs.decision }}
+        run: |
+          test "$DECISION" = "deny"
+          grep -q "How to fix" /tmp/repoman-denied.md

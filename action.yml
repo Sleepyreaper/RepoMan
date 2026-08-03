@@ -1,0 +1,66 @@
+name: RepoMan Terraform PR Gate
+description: Evaluate a Terraform plan against customer-specific requirements and return actionable approval guidance.
+author: RepoMan
+
+inputs:
+  policy-file:
+    description: Path to the customer policy JSON file.
+    required: false
+    default: .repoman/policy.json
+  plan-json:
+    description: Path to the JSON output from `terraform show -json`.
+    required: false
+    default: plan.json
+  repo-root:
+    description: Repository root used for source-control checks.
+    required: false
+    default: .
+  report-file:
+    description: Path for the generated Markdown report.
+    required: false
+    default: repoman-report.md
+  fail-on-deny:
+    description: Fail the action when RepoMan denies the pull request.
+    required: false
+    default: "true"
+
+outputs:
+  decision:
+    description: RepoMan decision (`approve` or `deny`).
+    value: ${{ steps.evaluate.outputs.decision }}
+  finding-count:
+    description: Number of blocking findings.
+    value: ${{ steps.evaluate.outputs.finding-count }}
+  report-file:
+    description: Path to the Markdown report.
+    value: ${{ steps.evaluate.outputs.report-file }}
+
+runs:
+  using: composite
+  steps:
+    - id: evaluate
+      name: Evaluate customer requirements
+      shell: bash
+      env:
+        REPOMAN_POLICY_FILE: ${{ inputs.policy-file }}
+        REPOMAN_PLAN_JSON: ${{ inputs.plan-json }}
+        REPOMAN_REPO_ROOT: ${{ inputs.repo-root }}
+        REPOMAN_REPORT_FILE: ${{ inputs.report-file }}
+        REPOMAN_FAIL_ON_DENY: ${{ inputs.fail-on-deny }}
+      run: |
+        set +e
+        python3 "$GITHUB_ACTION_PATH/src/repoman.py" evaluate \
+          --policy "$REPOMAN_POLICY_FILE" \
+          --plan "$REPOMAN_PLAN_JSON" \
+          --repo-root "$REPOMAN_REPO_ROOT" \
+          --report "$REPOMAN_REPORT_FILE" \
+          --github
+        status=$?
+        set -e
+
+        if [[ "$status" -eq 1 && "$REPOMAN_FAIL_ON_DENY" == "false" ]]; then
+          exit 0
+        fi
+
+        exit "$status"
+
